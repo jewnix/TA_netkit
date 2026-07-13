@@ -1,0 +1,56 @@
+{
+    "dependencies": null,
+    "incompatibleApps": null,
+    "info": {
+        "author": [
+            {
+                "company": null,
+                "email": null,
+                "name": "David Twersky"
+            }
+        ],
+        "classification": {
+            "categories": [
+                "IT Operations"
+            ],
+            "developmentStatus": "Production/Latest",
+            "intendedAudience": "IT"
+        },
+        "commonInformationModels": null,
+        "description": "NetKit Add-on. Network probes that run on a Splunk Enterprise Heavy Forwarder: TCP-connect latency and internet throughput. Companion to the NetKit App.",
+        "id": {
+            "group": null,
+            "name": "TA_netkit",
+            "version": "1.0.0"
+        },
+        "license": {
+            "name": null,
+            "text": null,
+            "uri": null
+        },
+        "privacyPolicy": {
+            "name": null,
+            "text": null,
+            "uri": null
+        },
+        "releaseDate": null,
+        "releaseNotes": {
+            "name": null,
+            "text": null,
+            "uri": null
+        },
+        "title": "NetKit Add-on"
+    },
+    "inputGroups": null,
+    "platformRequirements": null,
+    "schemaVersion": "2.0.0",
+    "supportedDeployments": [
+        "_standalone",
+        "_distributed",
+        "_search_head_clustering"
+    ],
+    "targetWorkloads": [
+        "_forwarders"
+    ],
+    "tasks": null
+}
