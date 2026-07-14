@@ -13,13 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 """This module provides a base class of Splunk modular input."""
 
 import logging
 import sys
 import traceback
 from abc import ABCMeta, abstractmethod
-from typing import Callable
+from typing import Callable, List
 from urllib import parse as urlparse
 from xml.etree import ElementTree as ET  # nosemgrep
 
@@ -280,7 +281,7 @@ class ModularInput(metaclass=ABCMeta):
 
         return defused_et.tostring(scheme.to_xml(), encoding="unicode")
 
-    def extra_arguments(self) -> list:
+    def extra_arguments(self) -> List:
         """Extra arguments for modular input.
 
         Default implementation is returning an empty list.

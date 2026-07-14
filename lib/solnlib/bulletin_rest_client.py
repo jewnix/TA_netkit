@@ -15,7 +15,7 @@
 #
 
 from solnlib import splunk_rest_client as rest_client
-from typing import Optional
+from typing import Optional, List
 import json
 
 __all__ = ["BulletinRestClient"]
@@ -72,8 +72,8 @@ class BulletinRestClient:
         self,
         msg: str,
         severity: Severity = Severity.WARNING,
-        capabilities: Optional[list[str]] = None,
-        roles: Optional[list] = None,
+        capabilities: Optional[List[str]] = None,
+        roles: Optional[List] = None,
     ):
         """Creates a message in the Splunk's bulletin. Calling this method
         multiple times for the same instance will overwrite existing message.
@@ -144,7 +144,7 @@ class BulletinRestClient:
         self._rest_client.delete(endpoint)
 
     @staticmethod
-    def _validate_and_get_body_value(arg, error_msg) -> list:
+    def _validate_and_get_body_value(arg, error_msg) -> List:
         if type(arg) is list and (all(isinstance(el, str) for el in arg)):
             return [el for el in arg]
         else:

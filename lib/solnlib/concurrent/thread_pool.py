@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 """A simple thread pool implementation."""
 
 import multiprocessing
@@ -93,11 +94,11 @@ class ThreadPool:
         logging.info("ThreadPool stopped.")
 
     def enqueue_funcs(self, funcs, block=True):
-        """Run jobs in a fire and forget way, no result will be handled over to
+        """run jobs in a fire and forget way, no result will be handled over to
         clients.
 
-        :param funcs: tuple/list-like or generator like object, func
-            shall be callable
+        :param funcs: tuple/list-like or generator like object, func shall be
+                      callable
         """
 
         if not self._started:

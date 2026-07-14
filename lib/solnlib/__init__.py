@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 """The Splunk Software Development Kit for Solutions."""
 
 from . import (
@@ -55,4 +56,4 @@ __all__ = [
     "utils",
 ]
 
-__version__ = "8.1.0"
+__version__ = "7.0.0"

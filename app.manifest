@@ -5,7 +5,7 @@
         "author": [
             {
                 "company": null,
-                "email": null,
+                "email": "netkit@twersky.me",
                 "name": "David Twersky"
             }
         ],
@@ -13,36 +13,40 @@
             "categories": [
                 "IT Operations"
             ],
-            "developmentStatus": "Production/Latest",
-            "intendedAudience": "IT"
+            "developmentStatus": "Production/Stable",
+            "intendedAudience": "IT Professionals"
         },
         "commonInformationModels": null,
-        "description": "NetKit Add-on. Network probes that run on a Splunk Enterprise Heavy Forwarder: TCP-connect latency and internet throughput. Companion to the NetKit App.",
+        "description": "NetKit Add-on. Network probes that run on any full Splunk Enterprise instance (Heavy Forwarder, standalone, or search head): TCP-connect latency and internet throughput. Companion to the NetKit App.",
         "id": {
             "group": null,
             "name": "TA_netkit",
             "version": "1.0.0"
         },
         "license": {
-            "name": null,
-            "text": null,
-            "uri": null
+            "name": "Apache-2.0",
+            "text": "./LICENSE",
+            "uri": "https://www.apache.org/licenses/LICENSE-2.0"
         },
         "privacyPolicy": {
             "name": null,
             "text": null,
             "uri": null
         },
-        "releaseDate": null,
+        "releaseDate": "2026-07-13",
         "releaseNotes": {
-            "name": null,
-            "text": null,
-            "uri": null
+            "name": "CHANGELOG",
+            "text": "./CHANGELOG.md",
+            "uri": "https://github.com/jewnix/TA_netkit/blob/main/CHANGELOG.md"
         },
         "title": "NetKit Add-on"
     },
     "inputGroups": null,
-    "platformRequirements": null,
+    "platformRequirements": {
+        "splunk": {
+            "Enterprise": ">=10.2.0"
+        }
+    },
     "schemaVersion": "2.0.0",
     "supportedDeployments": [
         "_standalone",
@@ -50,7 +54,8 @@
         "_search_head_clustering"
     ],
     "targetWorkloads": [
-        "_forwarders"
+        "_forwarders",
+        "_search_heads"
     ],
     "tasks": null
 }

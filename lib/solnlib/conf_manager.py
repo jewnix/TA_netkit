@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 """This module contains simple interfaces for Splunk config file management,
 you can update/get/delete stanzas and encrypt/decrypt some fields of stanza
 automatically."""
@@ -20,7 +21,7 @@ automatically."""
 import json
 import logging
 import traceback
-from typing import Union, NoReturn
+from typing import List, Union, Dict, NoReturn
 
 from splunklib import binding, client
 
@@ -279,7 +280,7 @@ class ConfFile:
         return res
 
     @retry(exceptions=[binding.HTTPError])
-    def update(self, stanza_name: str, stanza: dict, encrypt_keys: list[str] = None):
+    def update(self, stanza_name: str, stanza: dict, encrypt_keys: List[str] = None):
         """Update stanza.
 
         It will try to encrypt the credential automatically fist if
@@ -558,7 +559,7 @@ def get_proxy_dict(
     conf_name: str,
     proxy_stanza: str = "proxy",
     **kwargs,
-) -> Union[dict[str, str], NoReturn]:
+) -> Union[Dict[str, str], NoReturn]:
     """This function returns the proxy settings for the addon from
     configuration file.
 

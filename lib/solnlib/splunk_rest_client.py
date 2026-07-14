@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 """This module proxy all REST call to splunklib SDK, it handles proxy, certs
 etc in this centralized location.
 
@@ -70,8 +71,6 @@ def _request_handler(context):
         'cert_file': string
         'pool_connections', int,
         'pool_maxsize', int,
-        'max_retries': int,
-        'retry_status_codes': list,
         }
     :type content: dict
     """
@@ -103,32 +102,25 @@ def _request_handler(context):
     else:
         cert = None
 
-    def adapter():
-        retries = Retry(
-            total=context.get("max_retries", MAX_REQUEST_RETRIES),
-            backoff_factor=0.3,
-            status_forcelist=context.get("retry_status_codes", [500, 502, 503, 504]),
-            allowed_methods=["GET", "POST", "PUT", "DELETE"],
-            raise_on_status=False,
+    retries = Retry(
+        total=MAX_REQUEST_RETRIES,
+        backoff_factor=0.3,
+        status_forcelist=[500, 502, 503, 504],
+        allowed_methods=["GET", "POST", "PUT", "DELETE"],
+        raise_on_status=False,
+    )
+    if context.get("pool_connections", 0):
+        logging.info("Use HTTP connection pooling")
+        session = requests.Session()
+        adapter = requests.adapters.HTTPAdapter(
+            max_retries=retries,
+            pool_connections=context.get("pool_connections", 10),
+            pool_maxsize=context.get("pool_maxsize", 10),
         )
-
-        adapter_args = {
-            "max_retries": retries,
-        }
-
-        # By default, pool_connections and pool_maxsize are set to 10 in urllib3
-        if "pool_connections" in context:
-            adapter_args["pool_connections"] = context["pool_connections"]
-        if "pool_maxsize" in context:
-            adapter_args["pool_maxsize"] = context["pool_maxsize"]
-
-        return requests.adapters.HTTPAdapter(**adapter_args)
-
-    session = requests.Session()
-    session.mount("http://", adapter())
-    session.mount("https://", adapter())
-
-    req_func = session.request
+        session.mount("https://", adapter)
+        req_func = session.request
+    else:
+        req_func = requests.request
 
     def request(url, message, **kwargs):
         """

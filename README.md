@@ -1,10 +1,10 @@
 # NetKit Add-on (TA_netkit)
 
-NetKit's collection add-on runs two scheduled probe inputs on a Heavy Forwarder
-(full Splunk Enterprise, not a Universal Forwarder) and forwards the results to
-your indexers. Its companion search-head app - prebuilt dashboards plus
-search-time JSON field extraction - is
-[jewnix/netkit](https://github.com/jewnix/netkit).
+NetKit's collection add-on runs two scheduled probe inputs on any full Splunk
+Enterprise instance (Heavy Forwarder, standalone, or search head; not a
+Universal Forwarder) and forwards the results to your indexers. Its companion
+search-head app - prebuilt dashboards plus search-time JSON field extraction -
+is [jewnix/netkit](https://github.com/jewnix/netkit).
 
 ## What the probes do
 
@@ -17,7 +17,7 @@ search-time JSON field extraction - is
 Both probes are pure Python, standard library only, with no shelling out to
 system `ping` or `speedtest` binaries.
 
-## Install (Heavy Forwarder)
+## Install (full Splunk Enterprise instance)
 
 1. Install the packaged tarball (Apps > Manage Apps > Install app from file), or
    drop it in `$SPLUNK_HOME/etc/apps/` and restart.

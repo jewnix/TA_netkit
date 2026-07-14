@@ -5,7 +5,12 @@
         "version": "1.0.0",
         "description": "NetKit Add-on",
         "contact": {
-            "name": "David Twersky"
+            "name": "David Twersky",
+            "email": "netkit@twersky.me"
+        },
+        "license": {
+            "name": "Apache-2.0",
+            "url": "https://www.apache.org/licenses/LICENSE-2.0"
         }
     },
     "servers": [

@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 """Splunk platform related utilities."""
+
 
 import os
 import os.path as op
@@ -22,7 +24,7 @@ import subprocess
 import json
 from configparser import ConfigParser
 from io import StringIO
-from typing import Optional, Union
+from typing import List, Optional, Tuple, Union
 import __main__
 from solnlib._settings import use_btool
 from .utils import is_true
@@ -72,7 +74,7 @@ class SessionKeyNotFound(Exception):
     pass
 
 
-def make_splunkhome_path(parts: Union[list, tuple]) -> str:
+def make_splunkhome_path(parts: Union[List, Tuple]) -> str:
     """Construct absolute path by $SPLUNK_HOME and `parts`.
 
     Concatenate $SPLUNK_HOME and `parts` to an absolute path.
@@ -92,7 +94,7 @@ def make_splunkhome_path(parts: Union[list, tuple]) -> str:
     return msp(parts)
 
 
-def get_splunk_host_info(session_key: Optional[str] = None) -> tuple:
+def get_splunk_host_info(session_key: Optional[str] = None) -> Tuple:
     """Get splunk host info.
 
     Arguments:
@@ -128,7 +130,7 @@ def get_splunk_bin() -> str:
     return make_splunkhome_path(("bin", splunk_bin))
 
 
-def get_splunkd_access_info(session_key: Optional[str] = None) -> tuple[str, str, int]:
+def get_splunkd_access_info(session_key: Optional[str] = None) -> Tuple[str, str, int]:
     """Get splunkd server access info.
 
     Arguments:
@@ -228,7 +230,7 @@ def get_conf_key_value(
     session_key: Optional[str] = None,
     user: str = "nobody",
     raw_output: Optional[bool] = False,
-) -> Union[str, list, dict]:
+) -> Union[str, List, dict]:
     """Get value of `key` of `stanza` in `conf_name`.
 
     Arguments:
