@@ -3,16 +3,10 @@ try:
 except ImportError:
     pass
 
-import logging
 import os
 
 _ADDON_NAME = "TA_netkit"
 _SETTINGS_CONF = "ta_netkit_settings"
-
-_SOLNLIB_FORMAT = (
-    "%(asctime)s log_level=%(levelname)s pid=%(process)d tid=%(threadName)s "
-    "file=%(filename)s:%(funcName)s:%(lineno)d | %(message)s"
-)
 
 
 def event_time(epoch):
@@ -43,25 +37,20 @@ def kv_line(base, fields):
     return kv(**merged)
 
 
-def _fallback_logger(name):
-    logger = logging.getLogger(name)
-    if not logger.handlers:
-        handler = logging.StreamHandler()
-        handler.setFormatter(logging.Formatter(_SOLNLIB_FORMAT))
-        logger.addHandler(handler)
-        logger.setLevel(logging.INFO)
-    return logger
-
-
 def get_logger(input_name):
-    full_name = _ADDON_NAME + "_" + input_name
-    if not os.environ.get("SPLUNK_HOME"):
-        return _fallback_logger(full_name)
-    try:
-        from solnlib import log
-    except ImportError:
-        return _fallback_logger(full_name)
-    return log.Logs().get_logger(full_name)
+    from solnlib import log
+    return log.Logs().get_logger(_ADDON_NAME + "_" + input_name)
+
+
+def emit_event(event_writer, stanza, sourcetype, epoch, data):
+    import json
+    from splunklib import modularinput as smi
+    event = smi.Event()
+    event.stanza = stanza
+    event.sourceType = sourcetype
+    event.time = event_time(epoch)
+    event.data = json.dumps(data)
+    event_writer.write_event(event)
 
 
 def apply_log_level(logger, session_key):

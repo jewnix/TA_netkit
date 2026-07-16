@@ -15,3 +15,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - In-app UI for configuring probe inputs.
 - Per-input diagnostic logging to _internal as sourcetype netkit_log.
 - Index-time parsing for the netkit:ping, netkit:speedtest, and netkit_log sourcetypes.
+- TLS probe input (netkit_tls_probe) measuring certificate validity, expiry, and chain trust against configured targets.
+- Certificate Authorities store for uploading and managing custom CA certificates used to validate probe targets.
+- Index-time parsing for the netkit:tls sourcetype.

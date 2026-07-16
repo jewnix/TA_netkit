@@ -3,39 +3,14 @@ try:
 except ImportError:
     pass
 
-import concurrent.futures
 import socket
 import statistics
 import time
 
-_MAX_WORKERS = 20
+import netkit_config
+from netkit_targets import parse_targets, run_parallel
+
 _INTERVAL_RANGE_S = (10, 86400)
-
-
-def parse_targets(raw):
-    if not raw or not raw.strip():
-        raise ValueError("targets is empty")
-    targets = []
-    for chunk in raw.split(","):
-        chunk = chunk.strip()
-        if not chunk:
-            continue
-        if ":" not in chunk:
-            raise ValueError("target missing port: " + chunk)
-        host, _, port_str = chunk.rpartition(":")
-        host = host.strip()
-        port_str = port_str.strip()
-        if not host:
-            raise ValueError("target missing host: " + chunk)
-        if not (port_str.isascii() and port_str.isdigit()):
-            raise ValueError("target port not numeric: " + chunk)
-        port = int(port_str)
-        if port < 1 or port > 65535:
-            raise ValueError("target port out of range: " + chunk)
-        targets.append((host, port))
-    if not targets:
-        raise ValueError("no valid targets parsed")
-    return targets
 
 
 def connect_once(host, port, timeout_s, _connector=socket.create_connection):
@@ -91,11 +66,9 @@ def _probe_target(host, port, count, timeout_s, _connector):
 def run_probe(targets_raw, count, timeout_ms, _connector=socket.create_connection):
     timeout_s = timeout_ms / 1000.0
     targets = parse_targets(targets_raw)
-    workers = max(1, min(len(targets), _MAX_WORKERS))
-    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
-        return list(executor.map(
-            lambda target: _probe_target(target[0], target[1], count, timeout_s, _connector),
-            targets))
+    return run_parallel(
+        targets,
+        lambda target: _probe_target(target[0], target[1], count, timeout_s, _connector))
 
 
 def validate_input(definition):
@@ -107,18 +80,11 @@ def validate_input(definition):
         raise ValueError("count must be >= 1")
     if timeout_ms < 1:
         raise ValueError("timeout_ms must be >= 1")
-    raw_interval = str(parameters.get("interval") or "").strip()
-    if not (raw_interval.isascii() and raw_interval.isdigit()):
-        raise ValueError("interval must be a whole number of seconds")
-    lo, hi = _INTERVAL_RANGE_S
-    if not lo <= int(raw_interval) <= hi:
-        raise ValueError("interval must be between %d and %d seconds" % (lo, hi))
+    netkit_config.validate_interval(parameters, *_INTERVAL_RANGE_S)
 
 
 def stream_events(inputs, event_writer):
-    import json
     import netkit_logging
-    from splunklib import modularinput as smi
 
     session_key = inputs.metadata["session_key"]
     for input_name, input_item in inputs.inputs.items():
@@ -135,12 +101,7 @@ def stream_events(inputs, event_writer):
             reachable = 0
             for summary in summaries:
                 epoch = summary.pop("epoch", run_epoch)
-                event = smi.Event()
-                event.stanza = name
-                event.sourceType = "netkit:ping"
-                event.time = netkit_logging.event_time(epoch)
-                event.data = json.dumps(summary)
-                event_writer.write_event(event)
+                netkit_logging.emit_event(event_writer, name, "netkit:ping", epoch, summary)
                 logger.debug(netkit_logging.kv_line(
                     {"event": "probe_result", "input": name}, summary))
                 if summary["reachable"]:

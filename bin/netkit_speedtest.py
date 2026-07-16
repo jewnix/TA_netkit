@@ -4,13 +4,13 @@ except ImportError:
     pass
 
 import http.client
-import json
-import os
 import re
-import ssl
 import time
 import urllib.parse
-import urllib.request
+
+import netkit_config
+import netkit_http
+from netkit_ssl import build_verify_context
 
 _DOWN_URL = "https://speed.cloudflare.com/__down?bytes={0}"
 _UP_URL = "https://speed.cloudflare.com/__up"
@@ -20,7 +20,6 @@ _UP_BYTES = 5 * _MB
 _TIMEOUT_S = 30.0
 _MAX_TRANSFER_S = 300.0
 _DOWN_CAP_FACTOR = 2
-_VERSION_FALLBACK = "1.0.0"
 _PROFILES = {
     "low": (10 * _MB, 2 * _MB),
     "standard": (_DOWN_BYTES, _UP_BYTES),
@@ -30,34 +29,6 @@ _INTERVAL_FLOOR_S = 300
 _INTERVAL_FLOOR_HEAVY_S = 900
 _DOWN_MB_RANGE = (1, 500)
 _UP_MB_RANGE = (1, 100)
-
-
-def _version(_manifest_path=None):
-    path = _manifest_path or os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "..", "app.manifest")
-    try:
-        with open(path) as fh:
-            version = json.load(fh)["info"]["id"]["version"]
-    except (OSError, ValueError, KeyError, TypeError):
-        return _VERSION_FALLBACK
-    return version or _VERSION_FALLBACK
-
-
-def _user_agent():
-    return "NetKit/" + _version()
-
-
-class _NoRedirectHandler(urllib.request.HTTPRedirectHandler):
-    def redirect_request(self, req, fp, code, msg, headers, newurl):
-        return None
-
-
-def _open(url, ctx):
-    request = urllib.request.Request(url)
-    request.add_header("User-Agent", _user_agent())
-    opener = urllib.request.build_opener(
-        urllib.request.HTTPSHandler(context=ctx), _NoRedirectHandler())
-    return opener.open(request, timeout=_TIMEOUT_S)
 
 
 def _zero_chunks(total, chunk_size=65536):
@@ -81,7 +52,7 @@ def _upload(up_bytes, ctx, _factory=None):
         conn.connect()
         start = time.perf_counter()
         conn.request("POST", parts.path, body=_zero_chunks(up_bytes),
-                     headers={"User-Agent": _user_agent(),
+                     headers={"User-Agent": netkit_http.user_agent(),
                               "Content-Length": str(up_bytes)})
         resp = conn.getresponse()
         resp.read()
@@ -91,14 +62,6 @@ def _upload(up_bytes, ctx, _factory=None):
             conn.close()
         except OSError:
             pass
-
-
-def build_ssl_context():
-    try:
-        import certifi
-        return ssl.create_default_context(cafile=certifi.where())
-    except ImportError:
-        return ssl.create_default_context()
 
 
 def mbps(num_bytes, seconds):
@@ -137,7 +100,7 @@ def resolve_sizes(input_item):
 
 
 def run_speedtest(_opener=None, _uploader=None, down_bytes=_DOWN_BYTES, up_bytes=_UP_BYTES):
-    opener = _opener or _open
+    opener = _opener or netkit_http.open_url
     uploader = _uploader or _upload
     result = {
         "download_mbps": 0.0,
@@ -152,7 +115,7 @@ def run_speedtest(_opener=None, _uploader=None, down_bytes=_DOWN_BYTES, up_bytes
     }
     start = time.perf_counter()
     try:
-        ctx = build_ssl_context()
+        ctx = build_verify_context()
         received = 0
         down_secs = 0.0
         cap = down_bytes * _DOWN_CAP_FACTOR
@@ -200,11 +163,9 @@ def validate_input(definition):
     profile = _normalize_profile(parameters)
     if profile not in ("low", "standard", "high", "custom"):
         raise ValueError("unknown profile: " + profile)
-    raw_interval = str(parameters.get("interval") or "").strip()
-    if not (raw_interval.isascii() and raw_interval.isdigit()):
-        raise ValueError("interval must be a whole number of seconds")
+    value = netkit_config.parse_interval(parameters)
     floor = _INTERVAL_FLOOR_HEAVY_S if profile in ("high", "custom") else _INTERVAL_FLOOR_S
-    if int(raw_interval) < floor:
+    if value < floor:
         raise ValueError(
             "interval must be at least %d seconds for profile %s" % (floor, profile))
     if profile == "custom":
@@ -214,7 +175,6 @@ def validate_input(definition):
 
 def stream_events(inputs, event_writer):
     import netkit_logging
-    from splunklib import modularinput as smi
 
     session_key = inputs.metadata["session_key"]
     for input_name, input_item in inputs.inputs.items():
@@ -225,12 +185,7 @@ def stream_events(inputs, event_writer):
             down_bytes, up_bytes = resolve_sizes(input_item)
             run_epoch = time.time()
             result = run_speedtest(down_bytes=down_bytes, up_bytes=up_bytes)
-            event = smi.Event()
-            event.stanza = name
-            event.sourceType = "netkit:speedtest"
-            event.time = netkit_logging.event_time(run_epoch)
-            event.data = json.dumps(result)
-            event_writer.write_event(event)
+            netkit_logging.emit_event(event_writer, name, "netkit:speedtest", run_epoch, result)
             logger.debug(netkit_logging.kv_line(
                 {"event": "speedtest_result", "input": name}, result))
             if result["ok"]:

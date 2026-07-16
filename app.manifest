@@ -17,7 +17,7 @@
             "intendedAudience": "IT Professionals"
         },
         "commonInformationModels": null,
-        "description": "NetKit Add-on. Network probes that run on any full Splunk Enterprise instance (Heavy Forwarder, standalone, or search head): TCP-connect latency and internet throughput. Companion to the NetKit App.",
+        "description": "NetKit Add-on. Network probes that run on any full Splunk Enterprise instance (Heavy Forwarder, standalone, or search head): TCP-connect latency, internet throughput, and TLS certificate inspection. Companion to the NetKit App.",
         "id": {
             "group": null,
             "name": "TA_netkit",

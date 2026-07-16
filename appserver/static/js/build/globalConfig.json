@@ -55,6 +55,55 @@
                             "required": true
                         }
                     ]
+                },
+                {
+                    "name": "certificate_authority",
+                    "title": "Certificate Authorities",
+                    "restHandlerModule": "netkit_ca_handler",
+                    "restHandlerClass": "CertificateAuthorityHandler",
+                    "table": {
+                        "header": [
+                            {
+                                "field": "name",
+                                "label": "Name"
+                            }
+                        ],
+                        "actions": [
+                            "edit",
+                            "delete",
+                            "clone"
+                        ]
+                    },
+                    "entity": [
+                        {
+                            "field": "name",
+                            "label": "Name",
+                            "type": "text",
+                            "required": true,
+                            "help": "Referenced by a TLS probe input's Certificate authority field.",
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "pattern": "^[a-zA-Z]\\w*$",
+                                    "errorMsg": "Name must start with a letter and contain only letters, numbers, and underscores."
+                                }
+                            ]
+                        },
+                        {
+                            "field": "ca_certificate",
+                            "label": "CA certificate(s) (PEM)",
+                            "type": "textarea",
+                            "required": true,
+                            "help": "One or more concatenated PEM certificates (root plus intermediates). Public data; stored in cleartext.",
+                            "validators": [
+                                {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 100000
+                                }
+                            ]
+                        }
+                    ]
                 }
             ]
         },
@@ -327,6 +376,102 @@
                                     "type": "number",
                                     "range": [
                                         300,
+                                        86400
+                                    ],
+                                    "isInteger": true
+                                }
+                            ]
+                        },
+                        {
+                            "type": "singleSelect",
+                            "field": "index",
+                            "label": "Index",
+                            "defaultValue": "default",
+                            "options": {
+                                "endpointUrl": "data/indexes?search=isInternal=0+disabled=0",
+                                "denyList": "^_.*$",
+                                "createSearchChoice": true
+                            },
+                            "validators": [
+                                {
+                                    "type": "index_name"
+                                }
+                            ],
+                            "help": "Destination index. Leave unset to route to the admin default; align the netkit_index macro on the search head to match."
+                        }
+                    ]
+                },
+                {
+                    "name": "netkit_tls_probe",
+                    "title": "TLS certificate inspection",
+                    "inputHelperModule": "netkit_tls",
+                    "entity": [
+                        {
+                            "field": "name",
+                            "label": "Name",
+                            "type": "text",
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "pattern": "^[a-zA-Z]\\w*$",
+                                    "errorMsg": "Name must start with a letter and contain only letters, numbers, and underscores."
+                                }
+                            ]
+                        },
+                        {
+                            "field": "targets",
+                            "label": "Targets (comma-separated host or host:port)",
+                            "help": "Hostname, IPv4, or IPv6 host, comma-separated. A target with no port implies :443. IPv6 literals require an explicit port and no brackets; the last colon separates the port. e.g. example.com, mail.example.com:465, 2606:4700:4700::1111:443",
+                            "type": "text",
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "pattern": "^[ \\t]*[A-Za-z0-9._:-]+(:\\d{1,5})?([ \\t]*,[ \\t]*[A-Za-z0-9._:-]+(:\\d{1,5})?)*[ \\t]*$",
+                                    "errorMsg": "Targets must be a comma-separated list of host or host:port."
+                                }
+                            ]
+                        },
+                        {
+                            "field": "timeout_ms",
+                            "label": "Handshake timeout (ms)",
+                            "type": "text",
+                            "required": false,
+                            "defaultValue": "5000",
+                            "validators": [
+                                {
+                                    "type": "number",
+                                    "range": [
+                                        1,
+                                        60000
+                                    ],
+                                    "isInteger": true
+                                }
+                            ]
+                        },
+                        {
+                            "field": "ca",
+                            "label": "Certificate authority",
+                            "help": "Validate against a Certificate Authorities entry (internal PKI). Leave blank to use the system default trust store.",
+                            "type": "singleSelect",
+                            "required": false,
+                            "options": {
+                                "referenceName": "certificate_authority"
+                            }
+                        },
+                        {
+                            "field": "interval",
+                            "label": "Interval (seconds)",
+                            "help": "Seconds between runs. Certificates change rarely; the default is hourly.",
+                            "type": "text",
+                            "required": true,
+                            "defaultValue": "3600",
+                            "validators": [
+                                {
+                                    "type": "number",
+                                    "range": [
+                                        10,
                                         86400
                                     ],
                                     "isInteger": true
