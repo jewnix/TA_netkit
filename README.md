@@ -78,5 +78,5 @@ companion `netkit` app references it through the `netkit_index` macro (default
 ## Logs
 
 The probes log to per-input files
-`$SPLUNK_HOME/var/log/splunk/TA_netkit_<input>.log` (sourcetype `netkit_log`),
+`$SPLUNK_HOME/var/log/splunk/ta_netkit_<input>.log` (sourcetype `netkit_log`),
 auto-ingested to `_internal`.

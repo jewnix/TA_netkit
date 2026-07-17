@@ -10,6 +10,8 @@ import time
 import netkit_config
 from netkit_targets import parse_targets, run_parallel
 
+_COUNT_RANGE = (1, 100)
+_TIMEOUT_MS_RANGE = (1, 60000)
 _INTERVAL_RANGE_S = (10, 86400)
 
 
@@ -76,10 +78,12 @@ def validate_input(definition):
     parse_targets(parameters.get("targets", ""))
     count = int(parameters.get("count", 4))
     timeout_ms = int(parameters.get("timeout_ms", 2000))
-    if count < 1:
-        raise ValueError("count must be >= 1")
-    if timeout_ms < 1:
-        raise ValueError("timeout_ms must be >= 1")
+    lo, hi = _COUNT_RANGE
+    if not lo <= count <= hi:
+        raise ValueError("count must be between %d and %d" % (lo, hi))
+    lo, hi = _TIMEOUT_MS_RANGE
+    if not lo <= timeout_ms <= hi:
+        raise ValueError("timeout_ms must be between %d and %d" % (lo, hi))
     netkit_config.validate_interval(parameters, *_INTERVAL_RANGE_S)
 
 
@@ -95,8 +99,11 @@ def stream_events(inputs, event_writer):
             targets_raw = input_item.get("targets", "")
             run_epoch = time.time()
             run_start = time.perf_counter()
-            count = int(input_item.get("count", 4))
-            timeout_ms = int(input_item.get("timeout_ms", 2000))
+            count = netkit_config.clamp_param(
+                logger, name, "count", int(input_item.get("count", 4)), *_COUNT_RANGE)
+            timeout_ms = netkit_config.clamp_param(
+                logger, name, "timeout_ms", int(input_item.get("timeout_ms", 2000)),
+                *_TIMEOUT_MS_RANGE)
             summaries = run_probe(targets_raw, count, timeout_ms)
             reachable = 0
             for summary in summaries:

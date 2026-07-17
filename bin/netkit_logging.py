@@ -39,7 +39,7 @@ def kv_line(base, fields):
 
 def get_logger(input_name):
     from solnlib import log
-    return log.Logs().get_logger(_ADDON_NAME + "_" + input_name)
+    return log.Logs().get_logger(_ADDON_NAME.lower() + "_" + input_name)
 
 
 def emit_event(event_writer, stanza, sourcetype, epoch, data):

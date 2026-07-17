@@ -19,6 +19,7 @@ _DOWN_BYTES = 25 * _MB
 _UP_BYTES = 5 * _MB
 _TIMEOUT_S = 30.0
 _MAX_TRANSFER_S = 300.0
+_CHUNK_SIZE = 65536
 _DOWN_CAP_FACTOR = 2
 _PROFILES = {
     "low": (10 * _MB, 2 * _MB),
@@ -31,19 +32,23 @@ _DOWN_MB_RANGE = (1, 500)
 _UP_MB_RANGE = (1, 100)
 
 
-def _zero_chunks(total, chunk_size=65536):
-    block = b"0" * chunk_size
-    remaining = total
-    while remaining > 0:
-        if remaining >= chunk_size:
-            yield block
-            remaining -= chunk_size
-        else:
-            yield block[:remaining]
-            remaining = 0
+class _ZeroBody:
+    def __init__(self, total, deadline=float("inf")):
+        self.total = total
+        self.deadline = deadline
+        self.sent = 0
+
+    def __iter__(self):
+        block = b"0" * _CHUNK_SIZE
+        while self.sent < self.total:
+            if time.perf_counter() >= self.deadline:
+                return
+            chunk = block[:min(_CHUNK_SIZE, self.total - self.sent)]
+            self.sent += len(chunk)
+            yield chunk
 
 
-def _upload(up_bytes, ctx, _factory=None):
+def _upload(up_bytes, ctx, _factory=None, max_seconds=_MAX_TRANSFER_S):
     parts = urllib.parse.urlsplit(_UP_URL)
     factory = _factory or (lambda: http.client.HTTPSConnection(
         parts.hostname, port=parts.port, context=ctx, timeout=_TIMEOUT_S))
@@ -51,12 +56,13 @@ def _upload(up_bytes, ctx, _factory=None):
     try:
         conn.connect()
         start = time.perf_counter()
-        conn.request("POST", parts.path, body=_zero_chunks(up_bytes),
+        body = _ZeroBody(up_bytes, start + max_seconds)
+        conn.request("POST", parts.path, body=body,
                      headers={"User-Agent": netkit_http.user_agent(),
                               "Content-Length": str(up_bytes)})
-        resp = conn.getresponse()
-        resp.read()
-        return time.perf_counter() - start
+        if body.sent == up_bytes:
+            conn.getresponse().read()
+        return time.perf_counter() - start, body.sent
     finally:
         try:
             conn.close()
@@ -85,17 +91,19 @@ def _normalize_profile(source):
     return str(source.get("profile") or "standard").strip().lower()
 
 
-def resolve_sizes(input_item):
+def resolve_sizes(input_item, logger=None, name=None):
     profile = _normalize_profile(input_item)
     if profile == "custom":
         try:
-            down = int(str(input_item.get("download_mb")).strip()) * _MB
-            up = int(str(input_item.get("upload_mb")).strip()) * _MB
+            down_mb = int(str(input_item.get("download_mb")).strip())
+            up_mb = int(str(input_item.get("upload_mb")).strip())
         except ValueError:
             return _PROFILES["standard"]
-        if down > 0 and up > 0:
-            return (down, up)
-        return _PROFILES["standard"]
+        down_mb = netkit_config.clamp_param(
+            logger, name, "download_mb", down_mb, *_DOWN_MB_RANGE)
+        up_mb = netkit_config.clamp_param(
+            logger, name, "upload_mb", up_mb, *_UP_MB_RANGE)
+        return (down_mb * _MB, up_mb * _MB)
     return _PROFILES.get(profile, _PROFILES["standard"])
 
 
@@ -126,7 +134,7 @@ def run_speedtest(_opener=None, _uploader=None, down_bytes=_DOWN_BYTES, up_bytes
             result["min_rtt_ms"] = timing["min_rtt_ms"]
             down_start = time.perf_counter()
             while True:
-                chunk = resp.read(65536)
+                chunk = resp.read(_CHUNK_SIZE)
                 if not chunk:
                     break
                 received += len(chunk)
@@ -136,10 +144,10 @@ def run_speedtest(_opener=None, _uploader=None, down_bytes=_DOWN_BYTES, up_bytes
         result["bytes_received"] = received
         result["download_mbps"] = mbps(received, down_secs)
 
-        up_secs = uploader(up_bytes, ctx)
+        up_secs, up_sent = uploader(up_bytes, ctx)
         up_secs = max(up_secs - (result["rtt_ms"] or 0.0) / 1000.0, 1e-6)
-        result["bytes_sent"] = up_bytes
-        result["upload_mbps"] = mbps(up_bytes, up_secs)
+        result["bytes_sent"] = up_sent
+        result["upload_mbps"] = mbps(up_sent, up_secs)
 
         result["ok"] = True
     except Exception as exc:
@@ -182,7 +190,7 @@ def stream_events(inputs, event_writer):
         logger = netkit_logging.get_logger(name)
         netkit_logging.apply_log_level(logger, session_key)
         try:
-            down_bytes, up_bytes = resolve_sizes(input_item)
+            down_bytes, up_bytes = resolve_sizes(input_item, logger, name)
             run_epoch = time.time()
             result = run_speedtest(down_bytes=down_bytes, up_bytes=up_bytes)
             netkit_logging.emit_event(event_writer, name, "netkit:speedtest", run_epoch, result)

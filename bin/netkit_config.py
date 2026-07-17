@@ -17,3 +17,21 @@ def validate_interval(parameters, lo, hi):
     if not lo <= value <= hi:
         raise ValueError("interval must be between %d and %d seconds" % (lo, hi))
     return value
+
+
+def clamp(value, lo, hi):
+    if value < lo:
+        return lo
+    if value > hi:
+        return hi
+    return value
+
+
+def clamp_param(logger, input_name, param, value, lo, hi):
+    used = clamp(value, lo, hi)
+    if used != value and logger is not None:
+        import netkit_logging
+        logger.warning(netkit_logging.kv(
+            event="param_clamped", input=input_name, param=param,
+            configured=value, clamped=used))
+    return used

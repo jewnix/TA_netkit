@@ -249,7 +249,9 @@ def stream_events(inputs, event_writer):
         netkit_logging.apply_log_level(logger, session_key)
         try:
             targets_raw = input_item.get("targets", "")
-            timeout_ms = int(input_item.get("timeout_ms", 5000))
+            timeout_ms = netkit_config.clamp_param(
+                logger, name, "timeout_ms", int(input_item.get("timeout_ms", 5000)),
+                *_TIMEOUT_MS_RANGE)
             ca_pem, ca_label = resolve_ca(session_key, input_item.get("ca"))
             ctx = build_verify_context(ca_pem)
             run_epoch = time.time()
