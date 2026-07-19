@@ -453,7 +453,7 @@
                         {
                             "field": "ca",
                             "label": "Certificate authority",
-                            "help": "Validate against a Certificate Authorities entry (internal PKI). Leave blank to use the system default trust store.",
+                            "help": "Validate against a Certificate Authorities entry (internal PKI). Leave blank to use the add-on's bundled CA list.",
                             "type": "singleSelect",
                             "required": false,
                             "options": {

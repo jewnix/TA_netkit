@@ -42,11 +42,7 @@
         "title": "NetKit Add-on"
     },
     "inputGroups": null,
-    "platformRequirements": {
-        "splunk": {
-            "Enterprise": ">=10.2.0"
-        }
-    },
+    "platformRequirements": null,
     "schemaVersion": "2.0.0",
     "supportedDeployments": [
         "_standalone",

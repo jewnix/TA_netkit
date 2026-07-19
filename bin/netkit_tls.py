@@ -150,7 +150,10 @@ def _handshake(host, port, ctx, timeout_s):
 
 
 def _get_server_cert(addr, timeout_s):
-    return ssl.get_server_certificate(addr, timeout=timeout_s)
+    host, port = addr
+    der, _chain_len, _version, _cipher = _handshake(
+        host, port, ssl._create_unverified_context(), timeout_s)
+    return ssl.DER_cert_to_PEM_cert(der)
 
 
 def _base_result(host, port, ca_label):
