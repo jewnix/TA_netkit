@@ -89,7 +89,7 @@ model = RestModel(fields, name=None, special_fields=special_fields)
 
 
 endpoint = DataInputModel(
-    'ping_probe',
+    'netkit_ping_probe',
     model,
 )
 

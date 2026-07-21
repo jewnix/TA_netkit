@@ -2,7 +2,7 @@
     "openapi": "3.0.0",
     "info": {
         "title": "TA_netkit",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "description": "NetKit Add-on",
         "contact": {
             "name": "David Twersky",
@@ -76,7 +76,7 @@
                     }
                 }
             },
-            "ping_probe": {
+            "netkit_ping_probe": {
                 "type": "object",
                 "properties": {
                     "name": {
@@ -106,7 +106,7 @@
                     }
                 }
             },
-            "ping_probe_without_name": {
+            "netkit_ping_probe_without_name": {
                 "type": "object",
                 "properties": {
                     "targets": {
@@ -133,7 +133,7 @@
                     }
                 }
             },
-            "ping_probe_without_disabled": {
+            "netkit_ping_probe_without_disabled": {
                 "type": "object",
                 "properties": {
                     "name": {
@@ -156,7 +156,7 @@
                     }
                 }
             },
-            "speedtest_probe": {
+            "netkit_speedtest_probe": {
                 "type": "object",
                 "properties": {
                     "name": {
@@ -192,7 +192,7 @@
                     }
                 }
             },
-            "speedtest_probe_without_name": {
+            "netkit_speedtest_probe_without_name": {
                 "type": "object",
                 "properties": {
                     "profile": {
@@ -225,7 +225,7 @@
                     }
                 }
             },
-            "speedtest_probe_without_disabled": {
+            "netkit_speedtest_probe_without_disabled": {
                 "type": "object",
                 "properties": {
                     "name": {
@@ -657,11 +657,11 @@
                 }
             ]
         },
-        "/TA_netkit_ping_probe": {
+        "/TA_netkit_netkit_ping_probe": {
             "get": {
                 "responses": {
                     "200": {
-                        "description": "Get list of items for ping_probe",
+                        "description": "Get list of items for netkit_ping_probe",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -676,7 +676,7 @@
                                                         "type": "string"
                                                     },
                                                     "content": {
-                                                        "$ref": "#/components/schemas/ping_probe_without_name"
+                                                        "$ref": "#/components/schemas/netkit_ping_probe_without_name"
                                                     }
                                                 }
                                             }
@@ -687,13 +687,13 @@
                         }
                     }
                 },
-                "description": "Get list of items for ping_probe",
+                "description": "Get list of items for netkit_ping_probe",
                 "deprecated": false
             },
             "post": {
                 "responses": {
                     "200": {
-                        "description": "Create item in ping_probe",
+                        "description": "Create item in netkit_ping_probe",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -708,7 +708,7 @@
                                                         "type": "string"
                                                     },
                                                     "content": {
-                                                        "$ref": "#/components/schemas/ping_probe_without_name"
+                                                        "$ref": "#/components/schemas/netkit_ping_probe_without_name"
                                                     }
                                                 }
                                             }
@@ -719,12 +719,12 @@
                         }
                     }
                 },
-                "description": "Create item in ping_probe",
+                "description": "Create item in netkit_ping_probe",
                 "requestBody": {
                     "content": {
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/ping_probe_without_disabled"
+                                "$ref": "#/components/schemas/netkit_ping_probe_without_disabled"
                             }
                         }
                     },
@@ -748,11 +748,11 @@
                 }
             ]
         },
-        "/TA_netkit_ping_probe/{name}": {
+        "/TA_netkit_netkit_ping_probe/{name}": {
             "get": {
                 "responses": {
                     "200": {
-                        "description": "Get ping_probe item details",
+                        "description": "Get netkit_ping_probe item details",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -767,7 +767,7 @@
                                                         "type": "string"
                                                     },
                                                     "content": {
-                                                        "$ref": "#/components/schemas/ping_probe_without_name"
+                                                        "$ref": "#/components/schemas/netkit_ping_probe_without_name"
                                                     }
                                                 }
                                             }
@@ -778,13 +778,13 @@
                         }
                     }
                 },
-                "description": "Get ping_probe item details",
+                "description": "Get netkit_ping_probe item details",
                 "deprecated": false
             },
             "post": {
                 "responses": {
                     "200": {
-                        "description": "Update ping_probe item",
+                        "description": "Update netkit_ping_probe item",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -799,7 +799,7 @@
                                                         "type": "string"
                                                     },
                                                     "content": {
-                                                        "$ref": "#/components/schemas/ping_probe_without_name"
+                                                        "$ref": "#/components/schemas/netkit_ping_probe_without_name"
                                                     }
                                                 }
                                             }
@@ -810,12 +810,12 @@
                         }
                     }
                 },
-                "description": "Update ping_probe item",
+                "description": "Update netkit_ping_probe item",
                 "requestBody": {
                     "content": {
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/ping_probe_without_name"
+                                "$ref": "#/components/schemas/netkit_ping_probe_without_name"
                             }
                         }
                     },
@@ -826,7 +826,7 @@
             "delete": {
                 "responses": {
                     "200": {
-                        "description": "Delete ping_probe item",
+                        "description": "Delete netkit_ping_probe item",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -841,7 +841,7 @@
                                                         "type": "string"
                                                     },
                                                     "content": {
-                                                        "$ref": "#/components/schemas/ping_probe_without_name"
+                                                        "$ref": "#/components/schemas/netkit_ping_probe_without_name"
                                                     }
                                                 }
                                             }
@@ -852,7 +852,7 @@
                         }
                     }
                 },
-                "description": "Delete ping_probe item",
+                "description": "Delete netkit_ping_probe item",
                 "deprecated": false
             },
             "parameters": [
@@ -880,11 +880,11 @@
                 }
             ]
         },
-        "/TA_netkit_speedtest_probe": {
+        "/TA_netkit_netkit_speedtest_probe": {
             "get": {
                 "responses": {
                     "200": {
-                        "description": "Get list of items for speedtest_probe",
+                        "description": "Get list of items for netkit_speedtest_probe",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -899,7 +899,7 @@
                                                         "type": "string"
                                                     },
                                                     "content": {
-                                                        "$ref": "#/components/schemas/speedtest_probe_without_name"
+                                                        "$ref": "#/components/schemas/netkit_speedtest_probe_without_name"
                                                     }
                                                 }
                                             }
@@ -910,13 +910,13 @@
                         }
                     }
                 },
-                "description": "Get list of items for speedtest_probe",
+                "description": "Get list of items for netkit_speedtest_probe",
                 "deprecated": false
             },
             "post": {
                 "responses": {
                     "200": {
-                        "description": "Create item in speedtest_probe",
+                        "description": "Create item in netkit_speedtest_probe",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -931,7 +931,7 @@
                                                         "type": "string"
                                                     },
                                                     "content": {
-                                                        "$ref": "#/components/schemas/speedtest_probe_without_name"
+                                                        "$ref": "#/components/schemas/netkit_speedtest_probe_without_name"
                                                     }
                                                 }
                                             }
@@ -942,12 +942,12 @@
                         }
                     }
                 },
-                "description": "Create item in speedtest_probe",
+                "description": "Create item in netkit_speedtest_probe",
                 "requestBody": {
                     "content": {
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/speedtest_probe_without_disabled"
+                                "$ref": "#/components/schemas/netkit_speedtest_probe_without_disabled"
                             }
                         }
                     },
@@ -971,11 +971,11 @@
                 }
             ]
         },
-        "/TA_netkit_speedtest_probe/{name}": {
+        "/TA_netkit_netkit_speedtest_probe/{name}": {
             "get": {
                 "responses": {
                     "200": {
-                        "description": "Get speedtest_probe item details",
+                        "description": "Get netkit_speedtest_probe item details",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -990,7 +990,7 @@
                                                         "type": "string"
                                                     },
                                                     "content": {
-                                                        "$ref": "#/components/schemas/speedtest_probe_without_name"
+                                                        "$ref": "#/components/schemas/netkit_speedtest_probe_without_name"
                                                     }
                                                 }
                                             }
@@ -1001,13 +1001,13 @@
                         }
                     }
                 },
-                "description": "Get speedtest_probe item details",
+                "description": "Get netkit_speedtest_probe item details",
                 "deprecated": false
             },
             "post": {
                 "responses": {
                     "200": {
-                        "description": "Update speedtest_probe item",
+                        "description": "Update netkit_speedtest_probe item",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1022,7 +1022,7 @@
                                                         "type": "string"
                                                     },
                                                     "content": {
-                                                        "$ref": "#/components/schemas/speedtest_probe_without_name"
+                                                        "$ref": "#/components/schemas/netkit_speedtest_probe_without_name"
                                                     }
                                                 }
                                             }
@@ -1033,12 +1033,12 @@
                         }
                     }
                 },
-                "description": "Update speedtest_probe item",
+                "description": "Update netkit_speedtest_probe item",
                 "requestBody": {
                     "content": {
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/speedtest_probe_without_name"
+                                "$ref": "#/components/schemas/netkit_speedtest_probe_without_name"
                             }
                         }
                     },
@@ -1049,7 +1049,7 @@
             "delete": {
                 "responses": {
                     "200": {
-                        "description": "Delete speedtest_probe item",
+                        "description": "Delete netkit_speedtest_probe item",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1064,7 +1064,7 @@
                                                         "type": "string"
                                                     },
                                                     "content": {
-                                                        "$ref": "#/components/schemas/speedtest_probe_without_name"
+                                                        "$ref": "#/components/schemas/netkit_speedtest_probe_without_name"
                                                     }
                                                 }
                                             }
@@ -1075,7 +1075,7 @@
                         }
                     }
                 },
-                "description": "Delete speedtest_probe item",
+                "description": "Delete netkit_speedtest_probe item",
                 "deprecated": false
             },
             "parameters": [

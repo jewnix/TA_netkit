@@ -3,16 +3,16 @@ import import_declare_test
 import sys
 
 from splunklib import modularinput as smi
-from netkit_speedtest import stream_events, validate_input
+from netkit_ping import stream_events, validate_input
 
 
-class SPEEDTEST_PROBE(smi.Script):
+class NETKIT_PING_PROBE(smi.Script):
     def __init__(self):
-        super(SPEEDTEST_PROBE, self).__init__()
+        super(NETKIT_PING_PROBE, self).__init__()
 
     def get_scheme(self):
-        scheme = smi.Scheme('speedtest_probe')
-        scheme.description = 'Speedtest (Cloudflare throughput)'
+        scheme = smi.Scheme('netkit_ping_probe')
+        scheme.description = 'Ping (TCP-connect latency)'
         scheme.use_external_validation = True
         scheme.streaming_mode_xml = True
         scheme.use_single_instance = False
@@ -27,19 +27,19 @@ class SPEEDTEST_PROBE(smi.Script):
         )
         scheme.add_argument(
             smi.Argument(
-                'profile',
+                'targets',
                 required_on_create=True,
             )
         )
         scheme.add_argument(
             smi.Argument(
-                'download_mb',
+                'count',
                 required_on_create=False,
             )
         )
         scheme.add_argument(
             smi.Argument(
-                'upload_mb',
+                'timeout_ms',
                 required_on_create=False,
             )
         )
@@ -53,5 +53,5 @@ class SPEEDTEST_PROBE(smi.Script):
 
 
 if __name__ == '__main__':
-    exit_code = SPEEDTEST_PROBE().run(sys.argv)
+    exit_code = NETKIT_PING_PROBE().run(sys.argv)
     sys.exit(exit_code)

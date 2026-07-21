@@ -3,10 +3,9 @@ try:
 except ImportError:
     pass
 
+import netkit_ca
 from splunktaucclib.rest_handler.admin_external import AdminExternalHandler
 from splunktaucclib.rest_handler.error import RestError
-
-import netkit_ca
 
 
 class CertificateAuthorityHandler(AdminExternalHandler):

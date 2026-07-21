@@ -42,3 +42,9 @@ def run_parallel(targets, fn):
     workers = max(1, min(len(targets), _MAX_WORKERS))
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
         return list(executor.map(fn, targets))
+
+
+def run_targets(targets_raw, timeout_ms, fn, default_port=None):
+    timeout_s = timeout_ms / 1000.0
+    targets = parse_targets(targets_raw, default_port=default_port)
+    return run_parallel(targets, lambda target: fn(target[0], target[1], timeout_s))

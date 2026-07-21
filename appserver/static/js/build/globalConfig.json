@@ -2,7 +2,7 @@
     "meta": {
         "name": "TA_netkit",
         "displayName": "NetKit Add-on",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "restRoot": "TA_netkit",
         "schemaVersion": "0.0.10",
         "supportedPythonVersion": [
@@ -137,7 +137,7 @@
             },
             "services": [
                 {
-                    "name": "ping_probe",
+                    "name": "netkit_ping_probe",
                     "title": "Ping (TCP-connect latency)",
                     "inputHelperModule": "netkit_ping",
                     "entity": [
@@ -239,7 +239,7 @@
                     ]
                 },
                 {
-                    "name": "speedtest_probe",
+                    "name": "netkit_speedtest_probe",
                     "title": "Speedtest (Cloudflare throughput)",
                     "inputHelperModule": "netkit_speedtest",
                     "entity": [

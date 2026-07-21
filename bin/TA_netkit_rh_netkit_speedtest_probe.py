@@ -89,7 +89,7 @@ model = RestModel(fields, name=None, special_fields=special_fields)
 
 
 endpoint = DataInputModel(
-    'speedtest_probe',
+    'netkit_speedtest_probe',
     model,
 )
 

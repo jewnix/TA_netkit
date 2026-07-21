@@ -10,6 +10,7 @@ import urllib.parse
 
 import netkit_config
 import netkit_http
+import netkit_logging
 from netkit_ssl import build_verify_context
 
 _DOWN_URL = "https://speed.cloudflare.com/__down?bytes={0}"
@@ -98,6 +99,11 @@ def resolve_sizes(input_item, logger=None, name=None):
             down_mb = int(str(input_item.get("download_mb")).strip())
             up_mb = int(str(input_item.get("upload_mb")).strip())
         except ValueError:
+            if logger is not None:
+                logger.warning(netkit_logging.kv(
+                    event="custom_size_invalid", input=name,
+                    download_mb=input_item.get("download_mb"),
+                    upload_mb=input_item.get("upload_mb")))
             return _PROFILES["standard"]
         down_mb = netkit_config.clamp_param(
             logger, name, "download_mb", down_mb, *_DOWN_MB_RANGE)
@@ -157,15 +163,6 @@ def run_speedtest(_opener=None, _uploader=None, down_bytes=_DOWN_BYTES, up_bytes
     return result
 
 
-def _validate_mb(parameters, field, lo, hi):
-    raw = str(parameters.get(field) or "").strip()
-    if not (raw.isascii() and raw.isdigit()):
-        raise ValueError(field + " must be a whole number of MB")
-    value = int(raw)
-    if value < lo or value > hi:
-        raise ValueError("%s must be between %d and %d" % (field, lo, hi))
-
-
 def validate_input(definition):
     parameters = definition.parameters
     profile = _normalize_profile(parameters)
@@ -177,34 +174,26 @@ def validate_input(definition):
         raise ValueError(
             "interval must be at least %d seconds for profile %s" % (floor, profile))
     if profile == "custom":
-        _validate_mb(parameters, "download_mb", *_DOWN_MB_RANGE)
-        _validate_mb(parameters, "upload_mb", *_UP_MB_RANGE)
+        netkit_config.validate_whole_number(parameters, "download_mb", *_DOWN_MB_RANGE)
+        netkit_config.validate_whole_number(parameters, "upload_mb", *_UP_MB_RANGE)
+
+
+def _stream_one(logger, name, input_item, session_key, event_writer):
+    down_bytes, up_bytes = resolve_sizes(input_item, logger, name)
+    run_epoch = time.time()
+    result = run_speedtest(down_bytes=down_bytes, up_bytes=up_bytes)
+    netkit_logging.emit_event(event_writer, name, "netkit:speedtest", run_epoch, result)
+    logger.debug(netkit_logging.kv_line(
+        {"event": "speedtest_result", "input": name}, result))
+    if result["ok"]:
+        logger.info(netkit_logging.kv(
+            event="speedtest_complete", input=name, ok=True,
+            duration_s=result["duration_s"]))
+    else:
+        logger.error(netkit_logging.kv(
+            event="speedtest_complete", input=name, ok=False,
+            duration_s=result["duration_s"], error=result.get("error")))
 
 
 def stream_events(inputs, event_writer):
-    import netkit_logging
-
-    session_key = inputs.metadata["session_key"]
-    for input_name, input_item in inputs.inputs.items():
-        name = input_name.split("/")[-1]
-        logger = netkit_logging.get_logger(name)
-        netkit_logging.apply_log_level(logger, session_key)
-        try:
-            down_bytes, up_bytes = resolve_sizes(input_item, logger, name)
-            run_epoch = time.time()
-            result = run_speedtest(down_bytes=down_bytes, up_bytes=up_bytes)
-            netkit_logging.emit_event(event_writer, name, "netkit:speedtest", run_epoch, result)
-            logger.debug(netkit_logging.kv_line(
-                {"event": "speedtest_result", "input": name}, result))
-            if result["ok"]:
-                logger.info(netkit_logging.kv(
-                    event="speedtest_complete", input=name, ok=True,
-                    duration_s=result["duration_s"]))
-            else:
-                logger.error(netkit_logging.kv(
-                    event="speedtest_complete", input=name, ok=False,
-                    duration_s=result["duration_s"], error=result.get("error")))
-        except Exception as exc:
-            logger.error(netkit_logging.kv(
-                event="speedtest_error", input=name,
-                error=str(exc) or type(exc).__name__))
+    netkit_logging.run_input(inputs, event_writer, "speedtest_error", _stream_one)

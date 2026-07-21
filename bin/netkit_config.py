@@ -5,17 +5,31 @@ except ImportError:
     pass
 
 
+def _whole_number(raw, message):
+    if not (raw.isascii() and raw.isdigit()):
+        raise ValueError(message)
+    return int(raw)
+
+
 def parse_interval(parameters):
     raw = str(parameters.get("interval") or "").strip()
-    if not (raw.isascii() and raw.isdigit()):
-        raise ValueError("interval must be a whole number of seconds")
-    return int(raw)
+    return _whole_number(raw, "interval must be a whole number of seconds")
 
 
 def validate_interval(parameters, lo, hi):
     value = parse_interval(parameters)
     if not lo <= value <= hi:
         raise ValueError("interval must be between %d and %d seconds" % (lo, hi))
+    return value
+
+
+def validate_whole_number(parameters, field, lo, hi, default=None):
+    raw = str(parameters.get(field) or "").strip()
+    if not raw and default is not None:
+        return default
+    value = _whole_number(raw, field + " must be a whole number")
+    if not lo <= value <= hi:
+        raise ValueError("%s must be between %d and %d" % (field, lo, hi))
     return value
 
 

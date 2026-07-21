@@ -1,4 +1,4 @@
-[ping_probe://<name>]
+[netkit_ping_probe://<name>]
 count = (Default: 4)
 index = Destination index. Leave unset to route to the admin default; align the netkit_index macro on the search head to match. (Default: default)
 interval = (Default: 60)
@@ -11,7 +11,7 @@ python.required = {3.7|3.9|3.13}
 * Optional.
 * Default: not set
 
-[speedtest_probe://<name>]
+[netkit_speedtest_probe://<name>]
 download_mb = Bytes downloaded per run when the profile is Custom (1-500 MB). (Default: 25)
 index = Destination index. Leave unset to route to the admin default; align the netkit_index macro on the search head to match. (Default: default)
 interval = Seconds between runs. Minimum 300; the High bandwidth and Custom profiles require at least 900. (Default: 1800)

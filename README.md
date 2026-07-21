@@ -85,20 +85,24 @@ companion `netkit` app (`KV_MODE=json`).
 - `netkit:tls` - one event per target per run: `target`, `dest`, `port`, `ca`,
   `verify_ok`, `verify_error`, `not_before`, `not_after`, `days_to_expiry`,
   `subject`, `subject_cn`, `issuer`, `issuer_cn`, `san`, `serial`,
-  `self_signed`, `is_ca`, `eku`, `tls_version`, `cipher`, `cert_sha256`, and
-  `chain_len`, plus the DN-derived fields `subject_org`, `subject_unit`,
-  `subject_locality`, `subject_state`, `subject_email`, `issuer_org`,
-  `issuer_unit`, `issuer_locality`, `issuer_state`, and `issuer_email`. Each
-  DN-derived field appears only when the certificate's subject or issuer
-  carries the matching RDN, so its absence is expected, not a probe error.
+  `self_signed`, `is_ca`, `eku`, `key_usage`, `sig_algorithm`, `pubkey_type`,
+  `pubkey_bits`, `tls_version`, `cipher`, `cert_sha256`, and `chain_len`, plus
+  the DN-derived fields `subject_org`, `subject_unit`, `subject_locality`,
+  `subject_state`, `subject_email`, `issuer_org`, `issuer_unit`,
+  `issuer_locality`, `issuer_state`, and `issuer_email`. Each DN-derived field
+  appears only when the certificate's subject or issuer carries the matching
+  RDN, so its absence is expected, not a probe error. `eku` and
+  `sig_algorithm` are emitted as OIDs and named in the SH app.
 
   **`chain_len` is version-dependent on a successful verification.** When the
   certificate verifies, it is populated on Splunk 10.2 and later (Python 3.13)
   and is `null` on Splunk 10.0 (Python 3.9), because the
   `SSLSocket.get_verified_chain()` API it reads was added in Python 3.13; on a
-  verification failure it is `null` on every Splunk version. A `null`
-  `chain_len` is the expected degradation, not a probe error; the certificate
-  fields extracted from the cert itself are identical across versions.
+  verification failure it is `null` on every Splunk version, as are
+  `tls_version` and `cipher` (the fallback fetch that still retrieves the
+  certificate does not report them). These `null` values are the expected
+  degradation, not a probe error; the certificate fields extracted from the
+  cert itself are identical across versions.
 
 ## Index
 

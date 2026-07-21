@@ -8,7 +8,8 @@ import statistics
 import time
 
 import netkit_config
-from netkit_targets import parse_targets, run_parallel
+import netkit_logging
+from netkit_targets import parse_targets, run_targets
 
 _COUNT_RANGE = (1, 100)
 _TIMEOUT_MS_RANGE = (1, 60000)
@@ -66,61 +67,39 @@ def _probe_target(host, port, count, timeout_s, _connector):
 
 
 def run_probe(targets_raw, count, timeout_ms, _connector=socket.create_connection):
-    timeout_s = timeout_ms / 1000.0
-    targets = parse_targets(targets_raw)
-    return run_parallel(
-        targets,
-        lambda target: _probe_target(target[0], target[1], count, timeout_s, _connector))
+    return run_targets(
+        targets_raw, timeout_ms,
+        lambda host, port, timeout_s: _probe_target(host, port, count, timeout_s, _connector))
 
 
 def validate_input(definition):
     parameters = definition.parameters
     parse_targets(parameters.get("targets", ""))
-    count = int(parameters.get("count", 4))
-    timeout_ms = int(parameters.get("timeout_ms", 2000))
-    lo, hi = _COUNT_RANGE
-    if not lo <= count <= hi:
-        raise ValueError("count must be between %d and %d" % (lo, hi))
-    lo, hi = _TIMEOUT_MS_RANGE
-    if not lo <= timeout_ms <= hi:
-        raise ValueError("timeout_ms must be between %d and %d" % (lo, hi))
+    netkit_config.validate_whole_number(parameters, "count", *_COUNT_RANGE, default=4)
+    netkit_config.validate_whole_number(
+        parameters, "timeout_ms", *_TIMEOUT_MS_RANGE, default=2000)
     netkit_config.validate_interval(parameters, *_INTERVAL_RANGE_S)
 
 
-def stream_events(inputs, event_writer):
-    import netkit_logging
+def _stream_one(logger, name, input_item, session_key, event_writer):
+    targets_raw = input_item.get("targets", "")
+    run_epoch = time.time()
+    run_start = time.perf_counter()
+    count = netkit_config.clamp_param(
+        logger, name, "count", int(input_item.get("count", 4)), *_COUNT_RANGE)
+    timeout_ms = netkit_config.clamp_param(
+        logger, name, "timeout_ms", int(input_item.get("timeout_ms", 2000)),
+        *_TIMEOUT_MS_RANGE)
+    summaries = run_probe(targets_raw, count, timeout_ms)
+    reachable = netkit_logging.emit_results(
+        logger, name, event_writer, "netkit:ping", run_epoch, summaries,
+        ok_field="reachable", fail_event="target_unreachable",
+        fail_fields=("target", "failure_pct"))
+    duration_ms = round((time.perf_counter() - run_start) * 1000.0)
+    logger.info(netkit_logging.kv(
+        event="probe_complete", input=name, targets=len(summaries),
+        reachable=reachable, duration_ms=duration_ms))
 
-    session_key = inputs.metadata["session_key"]
-    for input_name, input_item in inputs.inputs.items():
-        name = input_name.split("/")[-1]
-        logger = netkit_logging.get_logger(name)
-        netkit_logging.apply_log_level(logger, session_key)
-        try:
-            targets_raw = input_item.get("targets", "")
-            run_epoch = time.time()
-            run_start = time.perf_counter()
-            count = netkit_config.clamp_param(
-                logger, name, "count", int(input_item.get("count", 4)), *_COUNT_RANGE)
-            timeout_ms = netkit_config.clamp_param(
-                logger, name, "timeout_ms", int(input_item.get("timeout_ms", 2000)),
-                *_TIMEOUT_MS_RANGE)
-            summaries = run_probe(targets_raw, count, timeout_ms)
-            reachable = 0
-            for summary in summaries:
-                epoch = summary.pop("epoch", run_epoch)
-                netkit_logging.emit_event(event_writer, name, "netkit:ping", epoch, summary)
-                logger.debug(netkit_logging.kv_line(
-                    {"event": "probe_result", "input": name}, summary))
-                if summary["reachable"]:
-                    reachable += 1
-                else:
-                    logger.warning(netkit_logging.kv(
-                        event="target_unreachable", input=name, target=summary["target"],
-                        failure_pct=summary["failure_pct"]))
-            duration_ms = round((time.perf_counter() - run_start) * 1000.0)
-            logger.info(netkit_logging.kv(
-                event="probe_complete", input=name, targets=len(summaries),
-                reachable=reachable, duration_ms=duration_ms))
-        except Exception as exc:
-            logger.error(netkit_logging.kv(
-                event="ping_error", input=name, error=str(exc) or type(exc).__name__))
+
+def stream_events(inputs, event_writer):
+    netkit_logging.run_input(inputs, event_writer, "ping_error", _stream_one)
